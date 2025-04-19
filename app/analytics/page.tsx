@@ -15,22 +15,18 @@ export default function AnalyticsPage() {
   const [productStats, setProductStats] = useState<any[]>([])
 
   useEffect(() => {
-    // Load orders and products
     const loadedOrders = getOrders()
     const loadedProducts = getProducts()
-
     setOrders(loadedOrders)
     setProducts(loadedProducts)
   }, [])
 
   useEffect(() => {
-    // Apply date filter
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-    const yesterday = today - 86400000 // 24 hours in milliseconds
+    const yesterday = today - 86400000
 
     let filtered: Order[]
-
     switch (dateFilter) {
       case "today":
         filtered = orders.filter((order) => order.timestamp >= today)
@@ -47,18 +43,12 @@ export default function AnalyticsPage() {
       default:
         filtered = orders
     }
-
     setFilteredOrders(filtered)
-
-    // Calculate product stats
     calculateProductStats(filtered)
   }, [dateFilter, orders, products])
 
   const calculateProductStats = (filteredOrders: Order[]) => {
-    // Create a map to store product stats
     const statsMap = new Map()
-
-    // Initialize with all products
     products.forEach((product) => {
       statsMap.set(product.id, {
         id: product.id,
@@ -69,14 +59,11 @@ export default function AnalyticsPage() {
         profit: 0,
       })
     })
-
-    // Process orders
     filteredOrders.forEach((order) => {
       order.items.forEach((item) => {
         if (statsMap.has(item.productId)) {
           const stats = statsMap.get(item.productId)
           const product = products.find((p) => p.id === item.productId)
-
           if (product) {
             stats.quantity += item.quantity
             stats.revenue += item.price * item.quantity
@@ -85,36 +72,28 @@ export default function AnalyticsPage() {
         }
       })
     })
-
-    // Convert map to array and sort by revenue
     const statsArray = Array.from(statsMap.values())
       .filter((stat) => stat.quantity > 0)
       .sort((a, b) => b.revenue - a.revenue)
-
     setProductStats(statsArray)
   }
 
-  const getTotalOrders = () => {
-    return filteredOrders.length
+  const getTotalOrders = () => filteredOrders.length
+  const getTotalRevenue = () => filteredOrders.reduce((sum, order) => sum + order.total, 0)
+  const getTotalProfit = () => filteredOrders.reduce((sum, order) => sum + order.profit, 0)
+  const getTotalCost = () => filteredOrders.reduce((sum, order) => sum + order.cost, 0)
+  const getAverageOrderValue = () => filteredOrders.length > 0 ? getTotalRevenue() / filteredOrders.length : 0
+  const getTotalUnitsSold = () => productStats.reduce((sum, stat) => sum + stat.quantity, 0)
+  const getAverageProfitMargin = () => {
+    const revenue = getTotalRevenue()
+    return revenue > 0 ? (getTotalProfit() / revenue) * 100 : 0
   }
-
-  const getTotalRevenue = () => {
-    return filteredOrders.reduce((sum, order) => sum + order.total, 0)
-  }
-
-  const getTotalProfit = () => {
-    return filteredOrders.reduce((sum, order) => sum + order.profit, 0)
-  }
-
-  const getTotalCost = () => {
-    return filteredOrders.reduce((sum, order) => sum + order.cost, 0)
-  }
+  const getBestSellingProduct = () => productStats.length > 0 ? productStats[0] : null
 
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-2xl font-bold">Analytics</h1>
-
         <div className="flex flex-col sm:flex-row gap-4 mt-4 sm:mt-0">
           <Select value={dateFilter} onValueChange={setDateFilter}>
             <SelectTrigger className="w-[180px]">
@@ -168,10 +147,47 @@ export default function AnalyticsPage() {
             <div className="text-2xl font-bold">{formatCurrency(getTotalProfit())}</div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(getAverageOrderValue())}</div>
+          </CardContent>
+        </Card>
+
+        {/* <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Units Sold</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getTotalUnitsSold()}</div>
+          </CardContent>
+        </Card> */}
+
+        {/* <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getAverageProfitMargin().toFixed(1)}%</div>
+          </CardContent>
+        </Card> */}
+
+        {/* {getBestSellingProduct() && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Top Product</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{getBestSellingProduct().name}</div>
+            </CardContent>
+          </Card>
+        )} */}
       </div>
 
-      {/* Product Analytics Cards */}
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <h2 className="text-xl font-bold mb-4">Product Performance</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {productStats.map((stat) => (
@@ -205,7 +221,7 @@ export default function AnalyticsPage() {
             </p>
           )}
         </div>
-      </div>
+      </div> */}
 
       <div className="mt-8">
         <Card>

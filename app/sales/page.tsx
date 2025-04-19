@@ -227,7 +227,7 @@ export default function SalesPage() {
         </div>
       </div>
 
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <Card>
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
@@ -253,7 +253,7 @@ export default function SalesPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   )
 }
